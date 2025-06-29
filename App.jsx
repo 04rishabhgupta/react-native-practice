@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Text, TextInput, View, Button, Linking, Modal, ScrollView, Image, Animated } from 'react-native';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { Text, TextInput, View, Button, Linking, Modal, ScrollView, Image, Animated, FlatList } from 'react-native';
 import styles from './styles';
-import Counter from './components/Counter';
-import StaticGrid from './components/StaticGrid';
-import DynamicGrid from './components/DynamicGrid';
+
+// Lazy load components
+const Counter = lazy(() => import('./components/Counter'));
+const StaticGrid = lazy(() => import('./components/StaticGrid'));
+const DynamicGrid = lazy(() => import('./components/DynamicGrid'));
 import users from './data/users';
 import products from './data/products';
 
@@ -20,10 +22,12 @@ const App = () => {
   const age = 23;
 
   const reset = () => {
-    setDisplay(false);
-    setName("");
-    setEmail("");
-    setPass("");
+    if (name || email || pass) { // Only reset if there's a change in form
+      setDisplay(false);
+      setName('');
+      setEmail('');
+      setPass('');
+    }
   };
 
   const openWebsite = () => Linking.openURL('https://www.youtube.com/');
@@ -54,13 +58,11 @@ const App = () => {
       })
       .then((data) => setPosts(data))
       .catch(() => {
-        setPosts([
-          {
-            id: 'error',
-            title: 'Failed to load posts',
-            body: 'Please check your internet connection or try again later.'
-          }
-        ]);
+        setPosts([{
+          id: 'error',
+          title: 'Failed to load posts',
+          body: 'Try later.'
+        }]);
       });
   }, []);
 
@@ -68,18 +70,28 @@ const App = () => {
     console.log('Name changed:', name);
   }, [name]);
 
+  // Basic list optimization with FlatList
+  const renderItem = ({ item }) => (
+    <Text style={styles.listItem}>
+      {item.name} - {item.id}
+    </Text>
+  );
+
+  const keyExtractor = (item) => item.id.toString();  // Ensuring unique keys for each item
+
   return (
     <ScrollView style={styles.container}>
       <Animated.Text style={{ ...styles.header, opacity: fadeAnim }}>
         User List
       </Animated.Text>
 
-      {/* Replacing FlatList with .map() for safe rendering */}
-      {users.map((item) => (
-        <Text key={item.id} style={styles.listItem}>
-          {item.name} - {item.id}
-        </Text>
-      ))}
+      {/* Using FlatList for optimized rendering */}
+      <FlatList
+        data={users}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        initialNumToRender={10}  // Render 10 items initially
+      />
 
       <Text style={styles.subHeader}>Your age is {age}</Text>
       {age >= 18 ? (
@@ -88,6 +100,8 @@ const App = () => {
         <Text style={{ ...styles.subHeader, color: 'red' }}>You are a Child</Text>
       )}
 
+      
+      {/* Basic form in react native */}
       <Text style={styles.subHeader}>Form</Text>
       <TextInput
         style={styles.textInput}
@@ -121,10 +135,14 @@ const App = () => {
         </View>
       )}
 
-      <Counter />
-      <StaticGrid />
-      <DynamicGrid data={users} />
+      {/* Lazy-loaded components */}
+      <Suspense fallback={<Text>Loading...</Text>}>
+        <Counter />
+        <StaticGrid />
+        <DynamicGrid data={users} />
+      </Suspense>
 
+      {/* Linking and deep linking */}
       <View>
         <Text style={styles.subHeader}>Linking Functionality:</Text>
         <Button title="Open Website" onPress={openWebsite} />
@@ -144,9 +162,9 @@ const App = () => {
 
       <View>
         <Text style={styles.subHeader}>Latest Posts (via API):</Text>
-        {posts.map((post) => (
-          <View key={post.id} style={{ marginBottom: 12, padding: 10, backgroundColor: '#e8f4fd', borderRadius: 6 }}>
-            <Text style={{ fontWeight: 'bold', marginBottom: 5 }}>{post.title}</Text>
+        {posts.map(post => (
+          <View key={post.id} style={styles.postContainer}>
+            <Text style={styles.postTitle}>{post.title}</Text>
             <Text>{post.body}</Text>
           </View>
         ))}

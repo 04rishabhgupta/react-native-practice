@@ -5,6 +5,13 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         backgroundColor: '#f9f9f9',
+        marginBottom: 5,
+    },
+    postContainer: {
+        flex: 1,
+        padding: 12,
+        backgroundColor: '#f9f9f9',
+        marginBottom: 5,
     },
     item: {
         fontSize: 16,
@@ -17,6 +24,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         textAlign: 'center',
         textAlignVertical: 'center',
+        marginBottom: 5,
     },
     itemDynamic: {
         fontSize: 16,
@@ -95,6 +103,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 10,
         marginVertical: 6,
+        marginBottom: 10,
         backgroundColor: '#ecf0f1',
         borderRadius: 6,
         color: '#2c3e50',
